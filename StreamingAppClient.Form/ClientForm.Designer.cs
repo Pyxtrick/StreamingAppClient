@@ -37,6 +37,14 @@ partial class ClientForm
         PosSize = new TextBox();
         groupBox1 = new GroupBox();
         groupBox2 = new GroupBox();
+        label8 = new Label();
+        label7 = new Label();
+        label6 = new Label();
+        label5 = new Label();
+        ActiveItemList = new ListBox();
+        ItemList = new ListBox();
+        ModelToggleList = new ListBox();
+        ModelList = new ListBox();
         label4 = new Label();
         label3 = new Label();
         label2 = new Label();
@@ -119,6 +127,14 @@ partial class ClientForm
         // 
         // groupBox2
         // 
+        groupBox2.Controls.Add(label8);
+        groupBox2.Controls.Add(label7);
+        groupBox2.Controls.Add(label6);
+        groupBox2.Controls.Add(label5);
+        groupBox2.Controls.Add(ActiveItemList);
+        groupBox2.Controls.Add(ItemList);
+        groupBox2.Controls.Add(ModelToggleList);
+        groupBox2.Controls.Add(ModelList);
         groupBox2.Controls.Add(label4);
         groupBox2.Controls.Add(label3);
         groupBox2.Controls.Add(PosSize);
@@ -131,10 +147,82 @@ partial class ClientForm
         groupBox2.Controls.Add(PosX);
         groupBox2.Location = new Point(12, 90);
         groupBox2.Name = "groupBox2";
-        groupBox2.Size = new Size(550, 198);
+        groupBox2.Size = new Size(1174, 396);
         groupBox2.TabIndex = 9;
         groupBox2.TabStop = false;
         groupBox2.Text = "VTubeStudio";
+        // 
+        // label8
+        // 
+        label8.AutoSize = true;
+        label8.Location = new Point(567, 203);
+        label8.Name = "label8";
+        label8.Size = new Size(90, 20);
+        label8.TabIndex = 25;
+        label8.Text = "Active Items";
+        // 
+        // label7
+        // 
+        label7.AutoSize = true;
+        label7.Location = new Point(400, 203);
+        label7.Name = "label7";
+        label7.Size = new Size(45, 20);
+        label7.TabIndex = 24;
+        label7.Text = "Items";
+        // 
+        // label6
+        // 
+        label6.AutoSize = true;
+        label6.Location = new Point(209, 203);
+        label6.Name = "label6";
+        label6.Size = new Size(108, 20);
+        label6.TabIndex = 23;
+        label6.Text = "Model Toggles";
+        // 
+        // label5
+        // 
+        label5.AutoSize = true;
+        label5.Location = new Point(6, 203);
+        label5.Name = "label5";
+        label5.Size = new Size(58, 20);
+        label5.TabIndex = 22;
+        label5.Text = "Models";
+        // 
+        // ActiveItemList
+        // 
+        ActiveItemList.FormattingEnabled = true;
+        ActiveItemList.Location = new Point(567, 226);
+        ActiveItemList.Name = "ActiveItemList";
+        ActiveItemList.Size = new Size(125, 104);
+        ActiveItemList.TabIndex = 21;
+        ActiveItemList.SelectedIndexChanged += ActiveItemList_SelectedIndexChanged;
+        // 
+        // ItemList
+        // 
+        ItemList.FormattingEnabled = true;
+        ItemList.Location = new Point(400, 226);
+        ItemList.Name = "ItemList";
+        ItemList.Size = new Size(125, 104);
+        ItemList.TabIndex = 19;
+        ItemList.SelectedIndexChanged += ItemList_SelectedIndexChanged;
+        // 
+        // ModelToggleList
+        // 
+        ModelToggleList.FormattingEnabled = true;
+        ModelToggleList.Location = new Point(209, 226);
+        ModelToggleList.Name = "ModelToggleList";
+        ModelToggleList.Size = new Size(150, 104);
+        ModelToggleList.TabIndex = 17;
+        ModelToggleList.SelectedIndexChanged += ModelToggleList_SelectedIndexChanged;
+        // 
+        // ModelList
+        // 
+        ModelList.FormattingEnabled = true;
+        ModelList.Location = new Point(7, 226);
+        ModelList.Name = "ModelList";
+        ModelList.Size = new Size(150, 104);
+        ModelList.TabIndex = 10;
+        ModelList.SelectedIndexChanged += ModelList_SelectedIndexChanged;
         // 
         // label4
         // 
@@ -176,7 +264,7 @@ partial class ClientForm
         // 
         AutoScaleDimensions = new SizeF(8F, 20F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(716, 450);
+        ClientSize = new Size(1319, 593);
         Controls.Add(groupBox2);
         Controls.Add(groupBox1);
         Name = "ClientForm";
@@ -202,4 +290,12 @@ partial class ClientForm
     private Label label4;
     private Label label3;
     private Label label2;
+    private ListBox ModelList;
+    private ListBox ModelToggleList;
+    private ListBox ItemList;
+    private ListBox ActiveItemList;
+    private Label label8;
+    private Label label7;
+    private Label label6;
+    private Label label5;
 }

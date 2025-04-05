@@ -1,13 +1,30 @@
-﻿using VTS.Core;
+﻿using StreamingApp.API.VTubeStudio.Props;
+using StreamingAppClient.Core.VtubeStudio.Props;
+using VTS.Core;
 
 namespace StreamingApp.API.VTubeStudio;
 
 public interface IVTubeStudioApiRequest
 {
     Task Initalize();
-    Task AddItem();
-    Task ChangeColour();
+    
+    // Model
     Task ChangeLocaton(float x, float y, float r, float size);
     Task<ModelPosition> GetPosData();
-    Task SendRequest();
+    Task<List<Model>> GetModels();
+    Task SetModel(string modelID);
+
+    Task Live2DParameter();
+
+    Task ChangeColour();
+
+    // Toggles / HotKey
+    Task<List<Toggle>> GetToggles();
+    Task SetToggle(string hotkeyId);
+
+    //Items
+    Task<ItemsData> GetItems();
+    Task SetItem(Item item);
+    Task RemoveItems(List<Item> items);
+    Task RemoveAllItems();
 }

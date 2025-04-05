@@ -42,6 +42,7 @@ static class Program
         services.AddSingleton<CoreVTSPlugin>();
         services.AddScoped<IVTubeStudioApiRequest, VTubeStudioApiRequest>();
         services.AddScoped<IVTSLogger, ConsoleVTSLoggerImpl>();
+        services.AddCoreOptions();
 
 
     }

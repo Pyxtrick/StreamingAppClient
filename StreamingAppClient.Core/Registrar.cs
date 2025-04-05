@@ -10,6 +10,14 @@ public static class Registrar
 {
     public static void AddCoreOptions(this IServiceCollection services)
     {
+        //SignalR
+        services.AddScoped<ISignalRClient, SignalRClient>();
+
+        //VTube Studio
+        services.AddSingleton<VTubeStudioInitialize>();
+        services.AddSingleton<CoreVTSPlugin>();
+        services.AddScoped<IVTubeStudioApiRequest, VTubeStudioApiRequest>();
+        services.AddScoped<IVTSLogger, ConsoleVTSLoggerImpl>();
 
         //Options
         services.AddAutoMapper(typeof(CoreMappingProfile));

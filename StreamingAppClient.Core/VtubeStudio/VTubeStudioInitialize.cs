@@ -34,15 +34,12 @@ public class VTubeStudioInitialize
             {
                 await plugin.InitializeAsync(websocket, jsonUtility, tokenStorage, () => _logger.LogWarning("Disconnected!"));
                 _logger.Log("Connected!");
-                Console.WriteLine("Connected to VTubeStudio");
 
                 var apiState = await plugin.GetAPIStateAsync();
                 _logger.Log("Using VTubeStudio " + apiState.data.vTubeStudioVersion);
-                Console.WriteLine("Using VTubeStudio " + apiState.data.vTubeStudioVersion);
 
                 var currentModel = await plugin.GetCurrentModelAsync();
                 _logger.Log("The current model is: " + currentModel.data.modelName);
-                Console.WriteLine("The current model is: " + currentModel.data.modelName);
             }
             catch (VTSException e)
             {

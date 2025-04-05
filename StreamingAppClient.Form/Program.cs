@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StreamingApp.API.VTubeStudio;
+using StreamingAppClient.Core;
 using StreamingAppClient.SignalR;
 using System.Configuration;
 using Topshelf.Configurators;
@@ -25,6 +26,9 @@ static class Program
 
         using (ServiceProvider serviceProvider = services.BuildServiceProvider())
         {
+            var vTubeStudioInitialize = serviceProvider.GetRequiredService<IVTubeStudioApiRequest>();
+            Task task = vTubeStudioInitialize.Initalize();
+
             var form1 = serviceProvider.GetRequiredService<ClientForm>();
             Application.Run(form1);
         }
@@ -37,11 +41,8 @@ static class Program
         services.AddScoped<ClientForm>();
         //services.AddLogging(configure => configure.AddConsole());
         services.AddLogging();
-        services.AddScoped<ISignalRClient, SignalRClient>();
-        services.AddSingleton<VTubeStudioInitialize>();
-        services.AddSingleton<CoreVTSPlugin>();
-        services.AddScoped<IVTubeStudioApiRequest, VTubeStudioApiRequest>();
-        services.AddScoped<IVTSLogger, ConsoleVTSLoggerImpl>();
+       
+
         services.AddCoreOptions();
 
 

@@ -1,6 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using StreamingApp.API.VTubeStudio;
 using StreamingApp.Core.Utility;
+using StreamingAppClient.Core.Utility.Caching;
+using StreamingAppClient.Core.Utility.Caching.Data;
+using StreamingAppClient.Core.Utility.Caching.Interface;
 using StreamingAppClient.SignalR;
 using VTS.Core;
 
@@ -21,5 +24,9 @@ public static class Registrar
 
         //Options
         services.AddAutoMapper(typeof(CoreMappingProfile));
+
+        //Cache
+        services.AddScoped<ICache, Cache>();
+        services.AddSingleton<CacheData>();
     }
 }

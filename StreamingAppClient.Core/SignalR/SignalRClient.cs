@@ -1,10 +1,19 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
+using SendKeys.BLL;
+using StreamingAppClient.Core.Utility.Caching.Interface;
 
 namespace StreamingAppClient.SignalR;
 
 public class SignalRClient : ISignalRClient
 {
     private HubConnection? _connection;
+
+    private readonly ICache _cache;
+
+    public SignalRClient(ICache cache)
+    {
+        _cache = cache;
+    }
 
     public async Task OnInitializedAsync()
     {
@@ -17,6 +26,11 @@ public class SignalRClient : ISignalRClient
             _connection.On<string>("ReciveClientMessage", (message) =>
             {
                 Console.WriteLine(message);
+            });
+
+            _connection.On<string>("ReciveClientTTSMessage", (message) =>
+            {
+                WindowAPI.SendKeys(_cache.GetWindowHandle(), message);
             });
 
             await _connection.StartAsync();

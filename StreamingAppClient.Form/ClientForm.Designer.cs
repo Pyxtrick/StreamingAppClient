@@ -49,6 +49,8 @@ partial class ClientForm
         label3 = new Label();
         label2 = new Label();
         label1 = new Label();
+        TestSend = new Button();
+        setWindow = new Button();
         groupBox1.SuspendLayout();
         groupBox2.SuspendLayout();
         SuspendLayout();
@@ -260,11 +262,35 @@ partial class ClientForm
         label1.TabIndex = 10;
         label1.Text = "PosX";
         // 
+        // TestSend
+        // 
+        TestSend.Location = new Point(322, 38);
+        TestSend.Name = "TestSend";
+        TestSend.Size = new Size(126, 29);
+        TestSend.TabIndex = 1;
+        TestSend.Text = "Send Text";
+        TestSend.TextImageRelation = TextImageRelation.ImageAboveText;
+        TestSend.UseVisualStyleBackColor = true;
+        TestSend.Click += TestSend_Click;
+        // 
+        // setWindow
+        // 
+        setWindow.Location = new Point(492, 38);
+        setWindow.Name = "setWindow";
+        setWindow.Size = new Size(126, 29);
+        setWindow.TabIndex = 10;
+        setWindow.Text = "Set window";
+        setWindow.TextImageRelation = TextImageRelation.ImageAboveText;
+        setWindow.UseVisualStyleBackColor = true;
+        setWindow.Click += setWindow_Click;
+        // 
         // ClientForm
         // 
         AutoScaleDimensions = new SizeF(8F, 20F);
         AutoScaleMode = AutoScaleMode.Font;
         ClientSize = new Size(1319, 593);
+        Controls.Add(setWindow);
+        Controls.Add(TestSend);
         Controls.Add(groupBox2);
         Controls.Add(groupBox1);
         Name = "ClientForm";
@@ -298,4 +324,6 @@ partial class ClientForm
     private Label label7;
     private Label label6;
     private Label label5;
+    private Button TestSend;
+    private Button setWindow;
 }

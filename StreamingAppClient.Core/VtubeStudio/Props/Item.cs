@@ -1,21 +1,21 @@
 ﻿namespace StreamingApp.API.VTubeStudio.Props;
 public class Item
 {
-    public string fileName { get; set; }
+    public string FileName { get; set; }
 
-    public string instanceID { get; set; }
+    public string? InstanceID { get; set; }
 
-    public float positionX { get; set; }
+    public float PositionX { get; set; }
 
-    public float positionY { get; set; }
+    public float PositionY { get; set; }
 
-    public float size { get; set; }
+    public float Size { get; set; }
 
-    public float rotation { get; set; }
+    public float Rotation { get; set; }
 
-    public bool flipped { get; set; }
+    public bool Flipped { get; set; }
 
-    public int order { get; set; }
+    public int Order { get; set; }
 
-    public bool censored { get; set; }
+    public bool Censored { get; set; }
 }

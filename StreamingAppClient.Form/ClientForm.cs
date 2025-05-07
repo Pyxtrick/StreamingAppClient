@@ -2,9 +2,10 @@
 using SendKeys.BLL.ActiveWindow;
 using StreamingApp.API.VTubeStudio;
 using StreamingApp.API.VTubeStudio.Props;
+using StreamingAppClient.Core.Api;
 using StreamingAppClient.Core.Utility.Caching.Interface;
+using StreamingAppClient.Core.VtubeStudio.Props;
 using StreamingAppClient.SignalR;
-using System.Diagnostics;
 using System.Globalization;
 using WebSocketSharp;
 
@@ -14,25 +15,28 @@ public partial class ClientForm : Form
 {
     private readonly ISignalRClient _signalRClient;
 
-    private readonly IVTubeStudioApiRequest _vTubeStudioInitialize;
+    private readonly IVTubeStudioApiRequest _vTubeStudioApiRequest;
 
     private readonly ICache _cache;
+
+    private readonly ISend _send;
 
     private ActiveWindowWatcher activeWindowWatcher;
     private ActiveWindowModel activeWindow = ActiveWindowModel.CreateEmpty();
 
     private System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("^[.][0-9]+$|^-?[0-9]*[.]{0,1}[0-9]*$");
 
-    public ClientForm(ISignalRClient signalRClient, IVTubeStudioApiRequest vTubeStudioInitialize, ICache cache)
+    public ClientForm(ISignalRClient signalRClient, IVTubeStudioApiRequest vTubeStudioApiRequest, ICache cache, ISend send)
     {
         _signalRClient = signalRClient;
-        _vTubeStudioInitialize = vTubeStudioInitialize;
+        _vTubeStudioApiRequest = vTubeStudioApiRequest;
         _cache = cache;
         InitializeComponent();
 
         activeWindowWatcher = new ActiveWindowWatcher(TimeSpan.FromSeconds(1));
         activeWindowWatcher.ActiveWindowChanged += ActiveWindowWatcher_ActiveWindowChanged;
         activeWindowWatcher.Start();
+        _send = send;
     }
 
     private void ActiveWindowWatcher_ActiveWindowChanged(object sender, ActiveWindowChangedEventArgs e)
@@ -49,7 +53,7 @@ public partial class ClientForm : Form
     {
         //await _vTubeStudioInitialize.Initalize();
 
-        var t = await _vTubeStudioInitialize.GetPosData();
+        var t = await _vTubeStudioApiRequest.GetPosData();
 
         PosX.Text = t.positionX.ToString();
         PosY.Text = t.positionY.ToString();
@@ -57,41 +61,41 @@ public partial class ClientForm : Form
         PosSize.Text = t.size.ToString();
 
         //Model
-        var models = await _vTubeStudioInitialize.GetModels();
+        var models = await _vTubeStudioApiRequest.GetModels();
 
         ModelList.Items.Clear();
 
         foreach (var model in models)
         {
-            ModelList.Items.Add($"{model.modelName}: {model.modelID}");
+            ModelList.Items.Add($"{model.ModelName}: {model.ModelID}");
         }
 
         //Toggles
-        var toggles = await _vTubeStudioInitialize.GetToggles();
+        var toggles = await _vTubeStudioApiRequest.GetToggles();
 
         ModelToggleList.Items.Clear();
 
         foreach (var toggle in toggles)
         {
-            ModelToggleList.Items.Add($"{toggle.name}: {toggle.hotkeyID}");
+            ModelToggleList.Items.Add($"{toggle.Name}: {toggle.HotkeyID}");
         }
 
         //Items
-        var itemData = await _vTubeStudioInitialize.GetItems();
+        var itemData = await _vTubeStudioApiRequest.GetItems();
 
         ItemList.Items.Clear();
 
-        foreach (var item in itemData.availableItems)
+        foreach (var item in itemData.AvailableItems)
         {
-            ItemList.Items.Add($"{item.fileName}");
+            ItemList.Items.Add($"{item.FileName}");
         }
 
-        foreach (var item in itemData.itemsInScene)
+        foreach (var item in itemData.ItemsInScene)
         {
-            ActiveItemList.Items.Add($"{item.fileName}: {item.instanceID}");
+            ActiveItemList.Items.Add($"{item.FileName}: {item.InstanceID}");
         }
 
-        await _vTubeStudioInitialize.Live2DParameter();
+        await _vTubeStudioApiRequest.Live2DParameter();
     }
 
     private async void button2_Click(object sender, EventArgs e)
@@ -103,7 +107,7 @@ public partial class ClientForm : Form
         float r = !PosR.Text.IsNullOrEmpty() ? float.Parse(PosR.Text, CultureInfo.InvariantCulture) : float.NaN;
         float s = !PosSize.Text.IsNullOrEmpty() ? float.Parse(PosSize.Text, CultureInfo.InvariantCulture) : float.NaN;
 
-        await _vTubeStudioInitialize.ChangeLocaton(x, y, r, s);
+        await _vTubeStudioApiRequest.ChangeLocaton(x, y, r, s);
     }
 
     private void PosX_KeyPress(object sender, KeyPressEventArgs e)
@@ -132,16 +136,32 @@ public partial class ClientForm : Form
 
         id = id.Replace(" ", "");
 
-        await _vTubeStudioInitialize.SetModel(id);
+        await _vTubeStudioApiRequest.SetModel(id);
 
-        var toggles = await _vTubeStudioInitialize.GetToggles();
+        var toggles = await _vTubeStudioApiRequest.GetToggles();
 
         ModelToggleList.Items.Clear();
 
         foreach (var toggle in toggles)
         {
-            ModelToggleList.Items.Add($"{toggle.name}: {toggle.hotkeyID}");
+            ModelToggleList.Items.Add($"{toggle.Name}: {toggle.HotkeyID}");
         }
+
+        var models = await _vTubeStudioApiRequest.GetModels();
+
+        var modelID = await _vTubeStudioApiRequest.GetCurrentModel();
+        var index = models.FindIndex(m => m.ModelID == modelID);
+        models[index].IsActive = true;
+
+        VtubeStudioData vtubeStudioData = new()
+        {
+            AvailableItems = null,
+            ItemsInScene = null,
+            Models = models,
+            ModelToggles = toggles
+        };
+
+        await _send.SendToServer(vtubeStudioData);
     }
 
     private async void ModelToggleList_SelectedIndexChanged(object sender, EventArgs e)
@@ -150,7 +170,7 @@ public partial class ClientForm : Form
 
         id = id.Replace(" ", "");
 
-        await _vTubeStudioInitialize.SetToggle(id);
+        await _vTubeStudioApiRequest.SetToggle(id);
     }
 
     private async void ItemList_SelectedIndexChanged(object sender, EventArgs e)
@@ -159,20 +179,31 @@ public partial class ClientForm : Form
 
         Item item = new Item()
         {
-            fileName = fileName,
-            instanceID = "",
-            positionX = 0,
-            positionY = 0,
-            size = 0.3f,
-            rotation = 360,
-            flipped = false,
-            order = 1,
-            censored = false,
+            FileName = fileName,
+            InstanceID = "",
+            PositionX = 0,
+            PositionY = 0,
+            Size = 0.3f,
+            Rotation = 360,
+            Flipped = false,
+            Order = 1,
+            Censored = false,
         };
 
         ActiveItemList.Items.Add(fileName);
 
-        await _vTubeStudioInitialize.SetItem(item);
+        await _vTubeStudioApiRequest.SetItem(item);
+
+        var itemData = await _vTubeStudioApiRequest.GetItems();
+        VtubeStudioData vtubeStudioData = new()
+        {
+            AvailableItems = null,
+            ItemsInScene = itemData.ItemsInScene,
+            Models = null,
+            ModelToggles = null
+        };
+
+        await _send.SendToServer(vtubeStudioData);
     }
 
     private async void ActiveItemList_SelectedIndexChanged(object sender, EventArgs e)
@@ -200,10 +231,10 @@ public partial class ClientForm : Form
 
         Item item = new Item()
         {
-            fileName = fileName,
-            instanceID = instanceID,
+            FileName = fileName,
+            InstanceID = instanceID,
         };
-        await _vTubeStudioInitialize.RemoveItems(new List<Item> { item });
+        await _vTubeStudioApiRequest.RemoveItems(new List<Item> { item });
 
         if (ActiveItemList.Items.Count > 1)
         {
@@ -213,6 +244,17 @@ public partial class ClientForm : Form
         {
             ActiveItemList.Items.Clear();
         }
+
+        var itemData = await _vTubeStudioApiRequest.GetItems();
+        VtubeStudioData vtubeStudioData = new()
+        {
+            AvailableItems = null,
+            ItemsInScene = itemData.ItemsInScene,
+            Models = null,
+            ModelToggles = null
+        };
+
+        await _send.SendToServer(vtubeStudioData);
     }
 
     private void TestSend_Click(object sender, EventArgs e)
@@ -227,5 +269,28 @@ public partial class ClientForm : Form
         WindowAPI.SendKeys(activeWindow.WindowHandle, "[:phoneme on]~");
 
         _cache.AddWindowHandle(activeWindow.WindowHandle);
+    }
+
+    private async void GetInfo_Click(object sender, EventArgs e)
+    {
+        var itemData = await _vTubeStudioApiRequest.GetItems();
+
+        var models = await _vTubeStudioApiRequest.GetModels();
+
+        var modelID = await _vTubeStudioApiRequest.GetCurrentModel();
+        var index = models.FindIndex(m => m.ModelID == modelID);
+        models[index].IsActive = true;
+
+        var toggles = await _vTubeStudioApiRequest.GetToggles();
+
+        VtubeStudioData vtubeStudioData = new()
+        {
+            AvailableItems = itemData.AvailableItems,
+            ItemsInScene = itemData.ItemsInScene,
+            Models = models,
+            ModelToggles = toggles
+        };
+
+        await _send.SendToServer(vtubeStudioData);
     }
 }

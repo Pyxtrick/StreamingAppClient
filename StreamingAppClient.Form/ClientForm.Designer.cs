@@ -37,6 +37,7 @@ partial class ClientForm
         PosSize = new TextBox();
         groupBox1 = new GroupBox();
         groupBox2 = new GroupBox();
+        GetInfo = new Button();
         label8 = new Label();
         label7 = new Label();
         label6 = new Label();
@@ -129,6 +130,7 @@ partial class ClientForm
         // 
         // groupBox2
         // 
+        groupBox2.Controls.Add(GetInfo);
         groupBox2.Controls.Add(label8);
         groupBox2.Controls.Add(label7);
         groupBox2.Controls.Add(label6);
@@ -153,6 +155,16 @@ partial class ClientForm
         groupBox2.TabIndex = 9;
         groupBox2.TabStop = false;
         groupBox2.Text = "VTubeStudio";
+        // 
+        // GetInfo
+        // 
+        GetInfo.Location = new Point(947, 163);
+        GetInfo.Name = "GetInfo";
+        GetInfo.Size = new Size(94, 29);
+        GetInfo.TabIndex = 26;
+        GetInfo.Text = "GetInfo";
+        GetInfo.UseVisualStyleBackColor = true;
+        GetInfo.Click += GetInfo_Click;
         // 
         // label8
         // 
@@ -326,4 +338,5 @@ partial class ClientForm
     private Label label5;
     private Button TestSend;
     private Button setWindow;
+    private Button GetInfo;
 }

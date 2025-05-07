@@ -2,6 +2,8 @@
 
 public class Model
 {
-    public string modelName { get; set; }
-    public string modelID { get; set; }
+    public string ModelName { get; set; }
+    public string ModelID { get; set; }
+
+    public bool IsActive { get; set; }
 }

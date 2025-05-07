@@ -1,11 +1,6 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StreamingApp.API.VTubeStudio;
 using StreamingAppClient.Core;
-using StreamingAppClient.SignalR;
-using System.Configuration;
-using Topshelf.Configurators;
-using VTS.Core;
 
 namespace StreamingAppClient.View;
 

@@ -7,7 +7,9 @@ namespace StreamingApp.API.VTubeStudio;
 public interface IVTubeStudioApiRequest
 {
     Task Initalize();
-    
+
+    Task<string> GetCurrentModel();
+
     // Model
     Task ChangeLocaton(float x, float y, float r, float size);
     Task<ModelPosition> GetPosData();
@@ -25,6 +27,7 @@ public interface IVTubeStudioApiRequest
     //Items
     Task<ItemsData> GetItems();
     Task SetItem(Item item);
+    Task MoveItem(string itemInsanceID, float x, float y, float r, float size);
     Task RemoveItems(List<Item> items);
     Task RemoveAllItems();
 }

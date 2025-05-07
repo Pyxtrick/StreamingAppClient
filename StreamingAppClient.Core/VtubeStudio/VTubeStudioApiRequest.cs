@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using StreamingApp.API.VTubeStudio.Props;
+using StreamingAppClient.Core.Api;
 using StreamingAppClient.Core.VtubeStudio.Props;
 using VTS.Core;
 
@@ -16,13 +17,16 @@ public class VTubeStudioApiRequest : IVTubeStudioApiRequest
 
     private readonly IMapper _mapper;
 
+    private readonly ISend _send;
+
     private string CurrentModelID = "";
 
-    public VTubeStudioApiRequest(VTubeStudioInitialize vTubeStudioInitialize, IMapper mapper)//IConfiguration configuration)
+    public VTubeStudioApiRequest(VTubeStudioInitialize vTubeStudioInitialize, IMapper mapper, ISend send)//IConfiguration configuration)
     {
         //_configuration = configuration;
         _vTubeStudioInitialize = vTubeStudioInitialize;
         _mapper = mapper;
+        _send = send;
     }
 
     public async Task Initalize()
@@ -33,13 +37,15 @@ public class VTubeStudioApiRequest : IVTubeStudioApiRequest
     }
 
     #region Model
-    private async Task GetCurrentModel()
+    public async Task<string> GetCurrentModel()
     {
         //await _vTubeStudioInitialize.Data();
 
         var currentModelData = await _vTubeStudioInitialize.plugin.GetCurrentModelAsync();
 
         CurrentModelID = currentModelData.data.modelID;
+
+        return currentModelData.data.modelID;
     }
 
     public async Task<ModelPosition> GetPosData()
@@ -104,6 +110,22 @@ public class VTubeStudioApiRequest : IVTubeStudioApiRequest
         {
             await _vTubeStudioInitialize.plugin.LoadModelAsync(modelID);
             CurrentModelID = modelID;
+
+            var toggles = await GetToggles();
+            
+            var models = await GetModels();
+            var model = models.FirstOrDefault(m => m.ModelID == modelID);
+
+            VtubeStudioData vtubeStudioData = new()
+            {
+                AvailableItems = null,
+                ItemsInScene = null,
+                Models = new() { model },
+                ModelToggles = toggles
+            };
+
+            await _send.SendToServer(vtubeStudioData);
+
         }
         catch (Exception ex)
         {
@@ -127,7 +149,7 @@ public class VTubeStudioApiRequest : IVTubeStudioApiRequest
 
         var i = await GetItems();
 
-        await _vTubeStudioInitialize.plugin.TriggerHotkeyForLive2DItemAsync(i.itemsInScene.FirstOrDefault(t => t.fileName.Equals(name)).instanceID, itemToggles.data.availableHotkeys[5].name);
+        //await _vTubeStudioInitialize.plugin.TriggerHotkeyForLive2DItemAsync(i.itemsInScene.FirstOrDefault(t => t.fileName.Equals(name)).instanceID, itemToggles.data.availableHotkeys[5].name);
 
         Console.WriteLine(m);
 
@@ -177,9 +199,9 @@ public class VTubeStudioApiRequest : IVTubeStudioApiRequest
 
         var newItemData = new ItemsData()
         {
-            availableItems = itemData.data.availableItemFiles.Select(_mapper.Map<Item>).ToList(),
-            itemsInScene = itemData.data.itemInstancesInScene.Select(_mapper.Map<Item>).ToList(),
-            availableSpots = itemData.data.availableSpots
+            AvailableItems = itemData.data.availableItemFiles.Select(_mapper.Map<Item>).ToList(),
+            ItemsInScene = itemData.data.itemInstancesInScene.Select(_mapper.Map<Item>).ToList(),
+            AvailableSpots = itemData.data.availableSpots
         };
 
         return newItemData;
@@ -189,22 +211,33 @@ public class VTubeStudioApiRequest : IVTubeStudioApiRequest
     {
         VTSItemLoadOptions option = new VTSItemLoadOptions()
         {
-            positionX = item.positionX,
-            positionY = item.positionY,
-            size = item.size,
-            rotation = item.rotation,
+            positionX = item.PositionX,
+            positionY = item.PositionY,
+            size = item.Size,
+            rotation = item.Rotation,
             fadeTime = 0f,
-            order = item.order,
+            order = item.Order,
             failIfOrderTaken = false,
             smoothing = 0f,
-            censored = item.censored,
-            flipped = item.flipped,
+            censored = item.Censored,
+            flipped = item.Flipped,
             locked = false,
             unloadWhenPluginDisconnects = true,
         };
         try
         {
-            await _vTubeStudioInitialize.plugin.LoadItemAsync(item.fileName, option);
+            await _vTubeStudioInitialize.plugin.LoadItemAsync(item.FileName, option);
+
+            var itemData = await GetItems();
+            VtubeStudioData vtubeStudioData = new()
+            {
+                AvailableItems = null,
+                ItemsInScene = itemData.ItemsInScene,
+                Models = null,
+                ModelToggles = null
+            };
+
+            await _send.SendToServer(vtubeStudioData);
         }
         catch (Exception ex)
         {
@@ -212,18 +245,38 @@ public class VTubeStudioApiRequest : IVTubeStudioApiRequest
         }
     }
 
+    public async Task MoveItem(string itemInsanceID, float x = float.NaN, float y = float.NaN, float r = float.NaN, float size = float.NaN)
+    {
+        VTSItemMoveEntry vTSItemMoveEntry = new VTSItemMoveEntry() { itemInsanceID = itemInsanceID, options = new VTSItemMoveOptions() { positionX = x, positionY = y, rotation = r, size = size } };
+
+        List<VTSItemMoveEntry> t = new() { vTSItemMoveEntry };
+
+        await _vTubeStudioInitialize.plugin.MoveItemAsync(t.ToArray());
+    }
+
     public async Task RemoveItems(List<Item> items)
     {
         VTSItemUnloadOptions unloadOption = new VTSItemUnloadOptions()
         {
-            itemInstanceIDs = items.Select(t => t.instanceID).ToArray(),
-            fileNames = items.Select(t => t.fileName).ToArray(),
+            itemInstanceIDs = items.Select(t => t.InstanceID).ToArray(),
+            fileNames = items.Select(t => t.FileName).ToArray(),
             unloadAllInScene = false,
             unloadAllLoadedByThisPlugin = false,
             allowUnloadingItemsLoadedByUserOrOtherPlugins = true,
         };
 
         await _vTubeStudioInitialize.plugin.UnloadItemAsync(unloadOption);
+
+        var itemData = await GetItems();
+        VtubeStudioData vtubeStudioData = new()
+        {
+            AvailableItems = null,
+            ItemsInScene = itemData.ItemsInScene,
+            Models = null,
+            ModelToggles = null
+        };
+
+        await _send.SendToServer(vtubeStudioData);
     }
 
     public async Task RemoveAllItems()
@@ -238,6 +291,17 @@ public class VTubeStudioApiRequest : IVTubeStudioApiRequest
         };
 
         await _vTubeStudioInitialize.plugin.UnloadItemAsync(unloadOption);
+
+        var itemData = await GetItems();
+        VtubeStudioData vtubeStudioData = new()
+        {
+            AvailableItems = null,
+            ItemsInScene = itemData.ItemsInScene,
+            Models = null,
+            ModelToggles = null
+        };
+
+        await _send.SendToServer(vtubeStudioData);
     }
 
     public async Task<List<Toggle>> GetItemToggles(string itemName)

@@ -3,9 +3,11 @@ using Newtonsoft.Json;
 using SendKeys.BLL;
 using StreamingApp.API.VTubeStudio;
 using StreamingApp.API.VTubeStudio.Props;
+using StreamingAppClient.Core.TTS;
 using StreamingAppClient.Core.Utility.Caching.Interface;
 using StreamingAppClient.Core.VtubeStudio.Props;
 using VTS.Core;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace StreamingAppClient.SignalR;
 
@@ -38,7 +40,9 @@ public class SignalRClient : ISignalRClient
 
             _connection.On<string>("ReciveClientTTSMessage", (message) =>
             {
-                WindowAPI.SendKeys(_cache.GetWindowHandle(), message);
+                TTSData ttsData = JsonConvert.DeserializeObject<TTSData>(message);
+
+                WindowAPI.SendKeys(_cache.GetWindowHandle(), ttsData.Message);
             });
 
             _connection.On<string>("ReciveClientVtubeStudioModel",async (message) =>
